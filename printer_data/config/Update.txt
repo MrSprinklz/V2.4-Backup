@@ -1,0 +1,51 @@
+./kiauh/kiauh.sh
+
+## Leviathan Update Katapult
+sudo service klipper stop
+cd ~/katapult
+git pull
+make clean
+make menuconfig
+## STM32F446, Build 32kib, 12MHz, USB on PA11/PA12, 32KiB offset, 1,000,000 speed, check support double click, check LED, Pin PE1
+make
+python3 ~/katapult/scripts/flash_can.py -i can0 -u 0ceb1bad2efd -r 
+## Look for bootloader request can update success
+python3 ~/katapult/scripts/flash_can.py -f ~/katapult/out/deployer.bin -d /dev/serial/by-id/usb-katapult_stm32f446xx_25004A000851313133353932-if00
+
+## Leviathan Update Klipper
+sudo service klipper stop
+cd ~/klipper
+git pull
+make clean
+make menuconfig
+## STM32F446, 12MHz, USB to Can Bridge on PA11/PA12, Can on PB5/PB6, 32KiB offset, 1,000,000 speed
+make
+python3 ~/katapult/scripts/flash_can.py -i can0 -u 0ceb1bad2efd -r 
+python3 ~/katapult/scripts/flashtool.py -f ~/klipper/out/klipper.bin -d /dev/serial/by-id/usb-katapult_stm32f446xx_25004A000851313133353932-if00
+python3 ~/katapult/scripts/flash_can.py -i can0 -q 
+## Look for "Detected UUID: 0ceb1bad2efd, Application: Klipper"
+
+## SB2209 Update Katapult
+sudo service klipper stop
+cd ~/katapult
+git pull
+make clean
+make menuconfig
+## STM32G0B1, Build 8kib, 8MHz, CAN on PB0/PB1, 8KiB offset, 1,000,000 speed, check support double click, check LED, Pin PA13
+make
+python3 ~/katapult/scripts/flash_can.py -i can0 -u 2d5b51975fc8 -r 
+## Look for bootloader request can update success
+python3 ~/katapult/scripts/flash_can.py -f ~/katapult/out/deployer.bin -u 2d5b51975fc8
+
+## Leviathan Update Klipper
+sudo service klipper stop
+cd ~/klipper
+git pull
+make clean
+make menuconfig
+## STM32G0B1, 8MHz, Can on PB0/PB1, 8KiB offset, 1,000,000 speed
+make
+python3 ~/katapult/scripts/flash_can.py -i can0 -q
+python3 ~/katapult/scripts/flashtool.py -i can0 -u 2d5b51975fc8 -f ~/klipper/out/klipper.bin
+python3 ~/katapult/scripts/flash_can.py -i can0 -q 
+## Look for "Detected UUID: 2d5b51975fc8, Application: Klipper"
